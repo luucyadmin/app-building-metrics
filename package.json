@@ -1,0 +1,10 @@
+{
+	"name": "compare-variants",
+	"displayName": "Eckdaten Varianten",
+	"author": "Luucy AG",
+	"version": "1.0.0",
+	"dependencies": {
+		"luucy-types": "^8.14.1",
+		"typescript": "^4.6.3"
+	}
+}
