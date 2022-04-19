@@ -1,10 +1,13 @@
 import { createVariableDeclaration } from "./node_modules/typescript/lib/typescript";
 
 const app = ui.createProjectPanelSection();
+const panel = new ui.Panel("Vergleichen");
 
 // section for active varaint information
 const section = new ui.Section('aktive Variante');
 app.add(section);
+app.add(new ui.Button('Varianten Vergleichen', () => panel.open()))
+
 const actualVariantArea = new ui.LabeledValue('Fläche Total', '-  m²');
 const actualVariantVolume = new ui.LabeledValue('Volume Total', '- m³');
 section.add(actualVariantArea);
@@ -13,16 +16,16 @@ section.add(actualVariantVolume);
 // content of variant comparsion 
 const barChartSectionVolume = new ui.Container();
 const barChartSectionArea = new ui.Container();
-app.add(new ui.Separator());
-app.add(barChartSectionVolume);
-app.add(new ui.Separator());
-app.add(barChartSectionArea);
+// app.add(new ui.Separator());
+panel.add(barChartSectionVolume);
+panel.add(new ui.Separator());
+panel.add(barChartSectionArea);
 
 const createVariantBarChart = (name: string, values: any) => {
 
     const barChart = new ui.BarChart(name, 'm³');
     for (let item of values) {
-        barChart.addSegment(item.name, item.value);
+        barChart.addSegment(item.name, Math.round(item.value));
     }
     return barChart;
 } 
@@ -42,6 +45,7 @@ data.onProjectSelect.subscribe(project => {
                 actualVariantVolume.value = '- m³';
             }
         })
+
 
         // get informations of all variants
         project.getVariants().then(projectVars => {
@@ -70,7 +74,7 @@ data.onProjectSelect.subscribe(project => {
 
                 // create labeled values instead of bar chart
                 barChartSectionVolume.add(new ui.LabeledValue(varData.name, Math.round(varData.volume).toLocaleString('de-CH') + ' m³'))
-                // barChartSection.add(createVariantBarChart(varData.name, varVol));
+                // barChartSectionVolume.add(createVariantBarChart(varData.name, varVol));
             }
 
             // list all variant floor areas 
@@ -81,7 +85,7 @@ data.onProjectSelect.subscribe(project => {
 
                 // create labeled values instead of bar chart
                 barChartSectionArea.add(new ui.LabeledValue(varData.name, Math.round(varData.floorArea).toLocaleString('de-CH') + ' m²'))
-                // barChartSection.add(createVariantBarChart(varData.name, varVol));
+                // barChartSectionArea.add(createVariantBarChart(varData.name, varVol));
             }
 
         });
