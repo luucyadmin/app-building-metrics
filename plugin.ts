@@ -1,5 +1,3 @@
-import { createVariableDeclaration } from "./node_modules/typescript/lib/typescript";
-
 const app = ui.createProjectPanelSection();
 const panel = new ui.Panel("Vergleichen");
 

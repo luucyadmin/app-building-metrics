@@ -3,8 +3,15 @@
 	"displayName": "Eckdaten Varianten",
 	"author": "Luucy AG",
 	"version": "1.0.0",
+	"scopes": [
+		"core",
+		"ui",
+		"data"
+	],
 	"dependencies": {
-		"luucy-types": "^8.14.1",
+		"luucy-types": "^8.14.1"
+	},
+	"devDependencies": {
 		"typescript": "^4.6.3"
 	}
 }
