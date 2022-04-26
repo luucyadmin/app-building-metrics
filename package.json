@@ -2,7 +2,7 @@
 	"name": "compare-variants",
 	"displayName": "Eckdaten Varianten",
 	"author": "Luucy AG",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"scopes": [
 		"core",
 		"ui",
