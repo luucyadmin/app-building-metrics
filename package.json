@@ -3,6 +3,7 @@
 	"displayName": "Eckdaten Varianten",
 	"author": "Luucy AG",
 	"version": "1.0.1",
+	"internal": true,
 	"scopes": [
 		"core",
 		"ui",
