@@ -44,13 +44,13 @@ data.onProjectSelect.subscribe(async project => {
                 const section = new ui.Section(variant.name);
                 panel.add(section);
 
-                const areaChart = new ui.BarChart('Area', 'm²');
+                const areaChart = new ui.BarChart('Area', value => value.toMetricAreaString());
                 areaChart.addSegment(variant.name, variant.floorArea);
                 areaChart.max = maxArea;
 
                 section.add(areaChart);
 
-                const volumeChart = new ui.BarChart('Volume', 'm³');
+                const volumeChart = new ui.BarChart('Volume', value => value.toMetricVolumeString());
                 volumeChart.addSegment(variant.name, variant.volume);
                 volumeChart.max = maxVolume;
 
