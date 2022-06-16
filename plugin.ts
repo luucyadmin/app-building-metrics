@@ -1,19 +1,19 @@
 const app = ui.createProjectPanelSection();
 
 // create panel
-const panel = new ui.Panel('Vergleichen');
+const panel = new ui.Panel('Compare Variants');
 
 data.onProjectSelect.subscribe(async project => {
     app.removeAllChildren();
 
     // section for active varaint information
-    const section = new ui.Section('Aktive Variante');
+    const section = new ui.Section('Selected Variant');
     app.add(section);
 
-    const areaLabel = new ui.LabeledValue('Fläche Total', '- m²');
+    const areaLabel = new ui.LabeledValue('Area', '- m²');
     section.add(areaLabel);
 
-    const volumeLabel = new ui.LabeledValue('Volume Total', '- m³');
+    const volumeLabel = new ui.LabeledValue('Volume', '- m³');
     section.add(volumeLabel);
 
     if (project) {
@@ -25,14 +25,14 @@ data.onProjectSelect.subscribe(async project => {
                 variant.onFloorAreaChange.subscribe(area => areaLabel.value = area.toMetricAreaString());
                 variant.onVolumeChange.subscribe(volume => volumeLabel.value = volume.toMetricVolumeString());
             } else {
-                section.name = 'Keine Variante Ausgewählt';
+                section.name = 'No variant selected';
 
                 areaLabel.value = '- m²';
                 volumeLabel.value = '- m³';
             }
         });
 
-        section.add(new ui.Button('Varianten Vergleichen', async () => {
+        app.add(new ui.Button('Compare Variants', async () => {
             panel.removeAllChildren();
         
             const variants = await data.selectedProject.getVariants();

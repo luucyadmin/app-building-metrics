@@ -1,7 +1,6 @@
 {
 	"name": "compare-variants",
-	"displayName": "Eckdaten Varianten",
-	"author": "Luucy AG",
+	"displayName": "Compare Variants",
 	"version": "1.0.2",
 	"internal": true,
 	"scopes": [
