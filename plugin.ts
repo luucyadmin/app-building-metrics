@@ -1,19 +1,19 @@
 const app = ui.createProjectPanelSection();
 
 // create panel
-const panel = new ui.Panel('Compare Variants');
+const panel = new ui.Panel('Compare Variants'.translate.german('Varianten Vergleichen'));
 
 data.onProjectSelect.subscribe(async project => {
     app.removeAllChildren();
 
     // section for active varaint information
-    const section = new ui.Section('Selected Variant');
+    const section = new ui.Section('Selected Variant'.translate.german('Variante Auswählen'));
     app.add(section);
 
-    const areaLabel = new ui.LabeledValue('Area', '- m²');
+    const areaLabel = new ui.LabeledValue('Floor Area'.translate.german('Geschossfläche'), '- m²');
     section.add(areaLabel);
 
-    const volumeLabel = new ui.LabeledValue('Volume', '- m³');
+    const volumeLabel = new ui.LabeledValue('Volume'.translate.german('Gebäudevolumen'), '- m³');
     section.add(volumeLabel);
 
     if (project) {
@@ -25,14 +25,14 @@ data.onProjectSelect.subscribe(async project => {
                 variant.onFloorAreaChange.subscribe(area => areaLabel.value = area.toMetricAreaString());
                 variant.onVolumeChange.subscribe(volume => volumeLabel.value = volume.toMetricVolumeString());
             } else {
-                section.name = 'No variant selected';
+                section.name = 'No variant selected'.translate.german('Keine Variante ausgewählt');
 
                 areaLabel.value = '- m²';
                 volumeLabel.value = '- m³';
             }
         });
 
-        app.add(new ui.Button('Compare Variants', async () => {
+        app.add(new ui.Button('Compare Variants'.translate.german('Alle Vergleichen'), async () => {
             panel.removeAllChildren();
         
             const variants = await data.selectedProject.getVariants();
@@ -44,13 +44,13 @@ data.onProjectSelect.subscribe(async project => {
                 const section = new ui.Section(variant.name);
                 panel.add(section);
 
-                const areaChart = new ui.BarChart('Area', value => value.toMetricAreaString());
+                const areaChart = new ui.BarChart('Floor Area'.translate.german('Geschlossfläche'), value => value.toMetricAreaString());
                 areaChart.addSegment(variant.name, variant.floorArea);
                 areaChart.max = maxArea;
 
                 section.add(areaChart);
 
-                const volumeChart = new ui.BarChart('Volume', value => value.toMetricVolumeString());
+                const volumeChart = new ui.BarChart('Volume'.translate.german('Gebäudevolumen'), value => value.toMetricVolumeString());
                 volumeChart.addSegment(variant.name, variant.volume);
                 volumeChart.max = maxVolume;
 
