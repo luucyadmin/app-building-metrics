@@ -6,8 +6,8 @@ const panel = new ui.Panel('Compare Variants'.translate.german('Varianten Vergle
 data.onProjectSelect.subscribe(async project => {
     app.removeAllChildren();
 
-    // section for active varaint information
-    const section = new ui.Section('Selected Variant'.translate.german('Variante Auswählen'));
+    // section for active variant information
+    const section = new ui.Section('Selected Variant');
     app.add(section);
 
     const areaLabel = new ui.LabeledValue('Floor Area'.translate.german('Geschossfläche'), '- m²');
@@ -17,7 +17,7 @@ data.onProjectSelect.subscribe(async project => {
     section.add(volumeLabel);
 
     if (project) {
-        // get informations of active variant 
+        // get information of active variant 
         project.onVariantSelect.subscribe(variant => {
             if (variant) {
                 section.name = variant.name;
