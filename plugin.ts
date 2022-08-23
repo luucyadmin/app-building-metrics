@@ -40,21 +40,22 @@ data.onProjectSelect.subscribe(async project => {
             const maxArea = Math.max(...variants.map(variant => variant.floorArea));
             const maxVolume = Math.max(...variants.map(volume => volume.volume));
 
-            for (let variant of variants) {
-                const section = new ui.Section(variant.name);
-                panel.add(section);
+            const areaSection = new ui.Section('Floor Area'.translate.german('Geschlossfläche'));
+            panel.add(areaSection);
 
-                const areaChart = new ui.BarChart('Floor Area'.translate.german('Geschlossfläche'), value => value.toMetricAreaString());
+            const volumeSection = new ui.Section('Volume'.translate.german('Gebäudevolumen'));
+            panel.add(volumeSection);
+
+            for (let variant of variants) {
+                const areaChart = new ui.BarChart(variant.name, value => value.toMetricAreaString());
                 areaChart.addSegment(variant.name, variant.floorArea);
                 areaChart.max = maxArea;
-
-                section.add(areaChart);
-
-                const volumeChart = new ui.BarChart('Volume'.translate.german('Gebäudevolumen'), value => value.toMetricVolumeString());
+                areaSection.add(areaChart);
+                
+                const volumeChart = new ui.BarChart(variant.name, value => value.toMetricVolumeString());
                 volumeChart.addSegment(variant.name, variant.volume);
                 volumeChart.max = maxVolume;
-
-                section.add(volumeChart);
+                volumeSection.add(volumeChart);
             }
         
             panel.open();
