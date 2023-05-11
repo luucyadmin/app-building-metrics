@@ -9,7 +9,7 @@
 		"data"
 	],
 	"dependencies": {
-		"luucy-types": "^8.14.4"
+		"luucy-types": "^10.20.3"
 	},
 	"devDependencies": {
 		"typescript": "^4.6.3"

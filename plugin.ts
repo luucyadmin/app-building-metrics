@@ -22,8 +22,8 @@ data.onProjectSelect.subscribe(async project => {
             if (variant) {
                 section.name = variant.name;
 
-                variant.onFloorAreaChange.subscribe(area => areaLabel.value = area.toMetricAreaString());
-                variant.onVolumeChange.subscribe(volume => volumeLabel.value = volume.toMetricVolumeString());
+                variant.onTotalFloorAreaChange.subscribe(area => areaLabel.value = area.total.toMetricAreaString());
+                variant.onTotalVolumeChange.subscribe(volume => volumeLabel.value = volume.total.toMetricVolumeString());
             } else {
                 section.name = 'No variant selected'.translate.german('Keine Variante ausgewählt');
 
@@ -37,8 +37,8 @@ data.onProjectSelect.subscribe(async project => {
         
             const variants = await data.selectedProject.getVariants();
 
-            const maxArea = Math.max(...variants.map(variant => variant.floorArea));
-            const maxVolume = Math.max(...variants.map(volume => volume.volume));
+            const maxArea = Math.max(...variants.map(variant => variant.totalFloorArea.total));
+            const maxVolume = Math.max(...variants.map(volume => volume.totalVolume.total));
 
             const areaSection = new ui.Section('Floor Area'.translate.german('Geschlossfläche'));
             panel.add(areaSection);
@@ -48,12 +48,12 @@ data.onProjectSelect.subscribe(async project => {
 
             for (let variant of variants) {
                 const areaChart = new ui.BarChart(variant.name, value => value.toMetricAreaString());
-                areaChart.addSegment(variant.name, variant.floorArea);
+                areaChart.addSegment(variant.name, variant.totalFloorArea.total);
                 areaChart.max = maxArea;
                 areaSection.add(areaChart);
                 
                 const volumeChart = new ui.BarChart(variant.name, value => value.toMetricVolumeString());
-                volumeChart.addSegment(variant.name, variant.volume);
+                volumeChart.addSegment(variant.name, variant.totalVolume.total);
                 volumeChart.max = maxVolume;
                 volumeSection.add(volumeChart);
             }
