@@ -1,7 +1,7 @@
 {
 	"name": "compare-variants",
 	"displayName": "Compare Variants",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"internal": true,
 	"scopes": [
 		"core",
