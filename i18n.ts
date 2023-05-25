@@ -1,5 +1,5 @@
-import * as de from "./i18n/de.json";
-import * as en from "./i18n/en.json";
+import de from "./i18n/de";
+import en from "./i18n/en";
 
 const i18n = Object.keys(en).reduce((acc, key) => {
   acc[key] = en[key].translate.german(de[key]);
