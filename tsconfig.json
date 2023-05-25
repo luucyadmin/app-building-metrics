@@ -8,8 +8,9 @@
 		"noLib": true,
 		"noEmitHelpers": true,
 		"module": "AMD",
-		"moduleResolution": "classic",
-		"typeRoots": [ ".luucy" ]
+		"moduleResolution": "node",
+		"typeRoots": [ ".luucy" ],
+		"resolveJsonModule": true,
 	},
 	"include": [
 		"**/*.ts",
