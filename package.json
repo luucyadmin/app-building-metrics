@@ -9,7 +9,7 @@
 		"data"
 	],
 	"dependencies": {
-		"luucy-types": "^10.20.3"
+		"luucy-types": "github:luucyadmin/luucy-types#next/modal-width"
 	},
 	"devDependencies": {
 		"typescript": "^4.6.3"
