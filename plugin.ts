@@ -86,13 +86,13 @@ const onExportToCsv = (table: ui.Table<Record>) => {
   ]);
 
   csvModal.removeAllChildren();
-  csvModal.add(new ui.Label("Formatted"));
+  csvModal.add(new ui.Label(i18n.Formatted));
   csvModal.add(new ui.Code(formattedCsv));
-  csvModal.add(new ui.Button("Download CSV", () => ui.download(File.fromString("formatted.csv", formattedCsv))));
+  csvModal.add(new ui.Button(i18n.Download_CSV, () => ui.download(File.fromString("formatted.csv", formattedCsv))));
 
-  csvModal.add(new ui.Label("Raw"));
+  csvModal.add(new ui.Label(i18n.Raw));
   csvModal.add(new ui.Code(rawCsv));
-  csvModal.add(new ui.Button("Download CSV", () => ui.download(File.fromString("raw.csv", formattedCsv))));
+  csvModal.add(new ui.Button(i18n.Download_CSV, () => ui.download(File.fromString("raw.csv", formattedCsv))));
   csvModal.open();
 };
 
