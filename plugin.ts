@@ -17,6 +17,9 @@ const usagesText = "Usages".translate.german("Nutzung");
 const noVariantSelectedText = "No variant selected".translate.german("Keine Variante ausgewählt");
 const selectedVariantText = "Selected Variant".translate.german("Ausgewählte Variante");
 const csvText = "CSV Export";
+const formattedText = "Formatted".translate.german("Formatiert");
+const rawText = "Raw".translate.german("Roh");
+const downloadCsvText = "Download CSV".translate.german("CSV Herunterladen");
 
 const compareVariantsModal = new ui.Modal(compareVariantsText, ui.small);
 const showDetailsModal = new ui.Modal(showDetailsText, ui.medium);
@@ -96,13 +99,13 @@ const onExportToCsv = (table: ui.Table<Record>) => {
   ]);
 
   csvModal.removeAllChildren();
-  csvModal.add(new ui.Label("Formatted"));
+  csvModal.add(new ui.Label(formattedText));
   csvModal.add(new ui.Code(formattedCsv));
-  csvModal.add(new ui.Button("Download CSV", () => ui.download(File.fromString("formatted.csv", formattedCsv))));
+  csvModal.add(new ui.Button(downloadCsvText, () => ui.download(File.fromString("formatted.csv", formattedCsv))));
 
-  csvModal.add(new ui.Label("Raw"));
+  csvModal.add(new ui.Label(rawText));
   csvModal.add(new ui.Code(rawCsv));
-  csvModal.add(new ui.Button("Download CSV", () => ui.download(File.fromString("raw.csv", formattedCsv))));
+  csvModal.add(new ui.Button(downloadCsvText, () => ui.download(File.fromString("raw.csv", formattedCsv))));
   csvModal.open();
 };
 
