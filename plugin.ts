@@ -12,6 +12,7 @@ const volumeText = "Volume".translate.german("Gebäudevolumen");
 const floorAreaText = "Floor Area".translate.german("Geschlossfläche");
 const aboveGroundAreaText = "Area above ground".translate.german("Oberirdischer Fläche");
 const belowGroundAreaText = "Area below ground".translate.german("Unterirdischer Fläche");
+const footprintText = "Footprint".translate.german("Grundfläche");
 const metricsText = "Metrics".translate.german("Kennzahlen");
 const usagesText = "Usages".translate.german("Nutzung");
 const noVariantSelectedText = "No variant selected".translate.german("Keine Variante ausgewählt");
@@ -23,7 +24,6 @@ const downloadCsvText = "Download CSV".translate.german("CSV Herunterladen");
 
 const compareVariantsModal = new ui.Modal(compareVariantsText, ui.small);
 const showDetailsModal = new ui.Modal(showDetailsText, ui.medium);
-const csvModal = new ui.Modal(csvText);
 
 const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
 
@@ -31,10 +31,13 @@ const toCsv = (rows: any[][]): string => {
   return rows.map((row) => row.join(",")).join("\n");
 };
 
+const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0);
+
 const onShowViewDetails = async () => {
   showDetailsModal.removeAllChildren();
 
-  const buildings = await data.selectedProject.selectedVariant.buildings;
+  const variant = await data.selectedProject.selectedVariant;
+  const buildings = variant.buildings;
   const columns = buildings.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
 
   const metricsRecords: Record[] = [
@@ -42,11 +45,13 @@ const onShowViewDetails = async () => {
     { label: floorAreaText, data: buildings.map((b) => b.floorArea.total), format: (value) => value.toMetricAreaString() },
     { label: aboveGroundAreaText, data: buildings.map((b) => b.floorArea.overground), format: (value) => value.toMetricAreaString() },
     { label: belowGroundAreaText, data: buildings.map((b) => b.floorArea.underground), format: (value) => value.toMetricAreaString() },
+    { label: footprintText, data: buildings.map((b) => b.footprint), format: (value) => value.toMetricAreaString() },
   ];
   const metricsColumns = [new ui.Column<Record>(metricsText, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  showDetailsModal.add(new ui.Button(csvText, () => onExportToCsv(metricsTable)));
   showDetailsModal.add(metricsTable);
+  
+  showDetailsModal.add(new ui.Button(csvText, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable)));
 
   showDetailsModal.open();
 };
@@ -62,10 +67,10 @@ const onShowCompareVariants = async () => {
     { label: floorAreaText, data: variants.map((v) => v.totalFloorArea.total), format: (value) => value.toMetricAreaString() },
     { label: aboveGroundAreaText, data: variants.map((v) => v.totalFloorArea.overground), format: (value) => value.toMetricAreaString() },
     { label: belowGroundAreaText, data: variants.map((v) => v.totalFloorArea.underground), format: (value) => value.toMetricAreaString() },
+    { label: footprintText, data: variants.map((v) => sum(v.buildings.map((b) => b.footprint))), format: (value) => value.toMetricAreaString() },
   ];
   const metricsColumns = [new ui.Column<Record>(metricsText, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  compareVariantsModal.add(new ui.Button(csvText, () => onExportToCsv(metricsTable)));
   compareVariantsModal.add(metricsTable);
 
   const usageTypes = variants.flatMap((v) => v.usages.map((u) => u.type));
@@ -81,32 +86,22 @@ const onShowCompareVariants = async () => {
   }));
   const usagesColumns = [new ui.Column<Record>(usagesText, (item) => item.label), ...columns];
   const usagesTable = new ui.Table(usagesRecords, usagesColumns);
-  compareVariantsModal.add(new ui.Button(csvText, () => onExportToCsv(usagesTable)));
   compareVariantsModal.add(usagesTable);
+  
+  compareVariantsModal.add(new ui.Button(csvText, () => {
+    exportToCsv(`${data.selectedProject.name}-overview.csv`, metricsTable);
+    exportToCsv(`${data.selectedProject.name}-usages.csv`, usagesTable);
+  }));
 
   compareVariantsModal.open();
 };
 
-const onExportToCsv = (table: ui.Table<Record>) => {
-  const formattedCsv = toCsv([
-    table.getColumns().map((column) => column.name),
-    ...table.getRecords().map((record) => table.getColumns().map((column, idx) => column.resolve(record, idx))
-    ),
-  ]);
-  const rawCsv = toCsv([
+const exportToCsv = (filename: string, table: ui.Table<Record>) => {
+  const csv = toCsv([
     table.getColumns().map((column) => column.name),
     ...table.getRecords().map((record) => [record.label, ...record.data]),
   ]);
-
-  csvModal.removeAllChildren();
-  csvModal.add(new ui.Label(formattedText));
-  csvModal.add(new ui.Code(formattedCsv));
-  csvModal.add(new ui.Button(downloadCsvText, () => ui.download(File.fromString("formatted.csv", formattedCsv))));
-
-  csvModal.add(new ui.Label(rawText));
-  csvModal.add(new ui.Code(rawCsv));
-  csvModal.add(new ui.Button(downloadCsvText, () => ui.download(File.fromString("raw.csv", formattedCsv))));
-  csvModal.open();
+  ui.download(File.fromString(filename, csv));
 };
 
 data.onProjectSelect.subscribe(async (project) => {
@@ -122,6 +117,8 @@ data.onProjectSelect.subscribe(async (project) => {
   section.add(overgroundAreaLabel);
   const undergroundAreaLabel = new ui.LabeledValue(belowGroundAreaText, "- m²");
   section.add(undergroundAreaLabel);
+  const footprintLabel = new ui.LabeledValue(footprintText, "- m²");
+  section.add(footprintLabel);
 
   if (project) {
     // get information of active variant
@@ -133,6 +130,7 @@ data.onProjectSelect.subscribe(async (project) => {
           areaLabel.value = area.total.toMetricAreaString();
           overgroundAreaLabel.value = area.overground.toMetricAreaString();
           undergroundAreaLabel.value = area.underground.toMetricAreaString();
+          footprintLabel.value = sum(variant.buildings.map((b) => b.footprint)).toMetricAreaString();
         });
       } else {
         section.name = noVariantSelectedText;
