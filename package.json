@@ -1,7 +1,7 @@
 {
 	"name": "compare-variants",
 	"displayName": "Compare Variants",
-	"version": "1.1.1",
+	"version": "1.2.3",
 	"internal": true,
 	"scopes": [
 		"core",
@@ -9,7 +9,7 @@
 		"data"
 	],
 	"dependencies": {
-		"luucy-types": "^10.20.3"
+		"luucy-types": "github:luucyadmin/luucy-types#next/modal-width"
 	},
 	"devDependencies": {
 		"typescript": "^4.6.3"
