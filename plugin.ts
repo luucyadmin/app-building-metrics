@@ -104,6 +104,10 @@ const exportToCsv = (filename: string, table: ui.Table<Record>) => {
   ui.download(File.fromString(filename, csv));
 };
 
+let variantSubscription;
+let volumeSubscription;
+let areaSubscription;
+let buildingSubscription;
 data.onProjectSelect.subscribe(async (project) => {
   app.removeAllChildren();
   // section for active variant information
@@ -120,22 +124,44 @@ data.onProjectSelect.subscribe(async (project) => {
   const footprintLabel = new ui.LabeledValue(footprintText, "- m²");
   section.add(footprintLabel);
 
+  const showVolume = (volume: data.Metric) => {
+    volumeLabel.value = volume.total.toMetricVolumeString();
+  }
+  const showArea = (area: data.Metric) => {
+    areaLabel.value = area.total.toMetricAreaString();
+    overgroundAreaLabel.value = area.overground.toMetricAreaString();
+    undergroundAreaLabel.value = area.underground.toMetricAreaString();
+  }
+  const showFootprint = (buildings: data.Building[]) => {
+    footprintLabel.value = sum(buildings.map((b) => b.footprint)).toMetricAreaString();
+  }
+
+  variantSubscription?.unsubscribe();
   if (project) {
     // get information of active variant
-    project.onVariantSelect.subscribe((variant) => {
+    variantSubscription = project.onVariantSelect.subscribe((variant) => {
+      volumeSubscription?.unsubscribe();
+      areaSubscription?.unsubscribe();
+      buildingSubscription?.unsubscribe();
+
       if (variant) {
-        section.name = variant.name;
-        variant.onTotalVolumeChange.subscribe((volume) => (volumeLabel.value = volume.total.toMetricVolumeString()));
-        variant.onTotalFloorAreaChange.subscribe((area) => {
-          areaLabel.value = area.total.toMetricAreaString();
-          overgroundAreaLabel.value = area.overground.toMetricAreaString();
-          undergroundAreaLabel.value = area.underground.toMetricAreaString();
-          footprintLabel.value = sum(variant.buildings.map((b) => b.footprint)).toMetricAreaString();
+        section.name = variant.name;        
+        showVolume(variant.totalVolume);
+        showArea(variant.totalFloorArea);
+        showFootprint(variant.buildings);
+        volumeSubscription = variant.onTotalVolumeChange.subscribe(showVolume);
+        areaSubscription = variant.onTotalFloorAreaChange.subscribe(showArea);
+        buildingSubscription = variant.onBuildingsChange.subscribe((bs) => {
+          console.log("onBuildingsChange", project.selectedVariant?.id, variant.id, "-", project.selectedVariant.buildings.length, variant.buildings.length, bs.length);
+          showFootprint(bs);
         });
       } else {
         section.name = noVariantSelectedText;
         areaLabel.value = "- m²";
         volumeLabel.value = "- m³";
+        overgroundAreaLabel.value = "- m²"; 
+        undergroundAreaLabel.value = "- m²";
+        footprintLabel.value = "- m²";
       }
     });
 
