@@ -151,10 +151,7 @@ data.onProjectSelect.subscribe(async (project) => {
         showFootprint(variant.buildings);
         volumeSubscription = variant.onTotalVolumeChange.subscribe(showVolume);
         areaSubscription = variant.onTotalFloorAreaChange.subscribe(showArea);
-        buildingSubscription = variant.onBuildingsChange.subscribe((bs) => {
-          console.log("onBuildingsChange", project.selectedVariant?.id, variant.id, "-", project.selectedVariant.buildings.length, variant.buildings.length, bs.length);
-          showFootprint(bs);
-        });
+        buildingSubscription = variant.onBuildingsChange.subscribe(showFootprint);
       } else {
         section.name = noVariantSelectedText;
         areaLabel.value = "- m²";
