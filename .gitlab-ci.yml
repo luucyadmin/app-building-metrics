@@ -11,4 +11,5 @@ stages:
     - translation
 
 translation:
-  <<: *translation-base
+    stage: translation
+    <<: *translation-base
