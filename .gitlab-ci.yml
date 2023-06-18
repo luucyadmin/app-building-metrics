@@ -1,4 +1,7 @@
 .translation: &translation-base
+    variables:
+        CROWDIN_PROJECT_ID: $project_id_env
+        CROWDIN_PERSONAL_TOKEN: $api_token_env
     image: crowdin/cli
     script:
     - echo crowdin upload sources
