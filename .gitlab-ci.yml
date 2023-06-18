@@ -4,6 +4,7 @@
         CROWDIN_PERSONAL_TOKEN: $api_token_env
     image: crowdin/cli
     script:
+    - echo ${CROWDIN_PROJECT_ID} ${project_id_env}
     - echo crowdin upload sources
     - crowdin upload sources
 
