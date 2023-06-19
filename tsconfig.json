@@ -9,6 +9,8 @@
 		"noEmitHelpers": true,
 		"module": "AMD",
 		"moduleResolution": "classic",
+		// "moduleResolution": "node",
+		// "resolveJsonModule": true,
 		"typeRoots": [ ".luucy" ]
 	},
 	"include": [

@@ -1,0 +1,12 @@
+.translation: &translation-base
+    image: crowdin/cli
+    script:
+    - echo crowdin upload sources
+    - crowdin upload sources -T $CROWDIN_API_TOKEN -i $CROWDIN_PROJECT_ID
+
+stages:
+    - translation
+
+translation:
+    stage: translation
+    <<: *translation-base
