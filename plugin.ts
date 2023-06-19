@@ -19,10 +19,10 @@ const toCsv = (rows: any[][]): string => {
 
 const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0);
 
-const onShowViewDetails = async () => {
+const onShowViewDetails = () => {
   showDetailsModal.removeAllChildren();
 
-  const variant = await data.selectedProject.selectedVariant;
+  const variant = data.selectedProject.selectedVariant;
   const buildings = variant.buildings;
   const columns = buildings.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
 
@@ -44,6 +44,8 @@ const onShowViewDetails = async () => {
 
 const onShowCompareVariants = async () => {
   compareVariantsModal.removeAllChildren();
+  compareVariantsModal.add(new ui.Label(i18n.Loading));
+  compareVariantsModal.open();
 
   const variants = await data.selectedProject.getVariants();
   const columns = variants.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
@@ -57,7 +59,6 @@ const onShowCompareVariants = async () => {
   ];
   const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  compareVariantsModal.add(metricsTable);
 
   const usageTypes = variants.flatMap((v) => v.usages.map((u) => u.type));
   const uniqueUsageTypes = usageTypes.filter((t, i, a) => a.indexOf(t) === i);
@@ -72,14 +73,16 @@ const onShowCompareVariants = async () => {
   }));
   const usagesColumns = [new ui.Column<Record>(i18n.Usages, (item) => item.label), ...columns];
   const usagesTable = new ui.Table(usagesRecords, usagesColumns);
-  compareVariantsModal.add(usagesTable);
-  
-  compareVariantsModal.add(new ui.Button(i18n.CSV_Export, () => {
+
+  const exportButton = new ui.Button(i18n.CSV_Export, () => {
     exportToCsv(`${data.selectedProject.name}-overview.csv`, metricsTable);
     exportToCsv(`${data.selectedProject.name}-usages.csv`, usagesTable);
-  }));
-
-  compareVariantsModal.open();
+  })
+  
+  compareVariantsModal.removeAllChildren();
+  compareVariantsModal.add(metricsTable);
+  compareVariantsModal.add(usagesTable);
+  compareVariantsModal.add(exportButton);
 };
 
 const exportToCsv = (filename: string, table: ui.Table<Record>) => {

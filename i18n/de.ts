@@ -14,5 +14,6 @@ export default {
   "Raw": "Roh",
   "Download_CSV": "CSV Herunterladen",
   "Footprint": "Grundfläche",
+  "Loading": "Laden"
 
 }

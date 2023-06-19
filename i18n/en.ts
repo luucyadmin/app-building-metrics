@@ -14,4 +14,5 @@ export default {
   "Raw": "Raw",
   "Download_CSV": "Download CSV",
   "Footprint": "Footprint",
+  "Loading": "Loading",
 }
