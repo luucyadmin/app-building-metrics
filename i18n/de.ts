@@ -13,4 +13,6 @@ export default {
   "Formatted": "Formatiert",
   "Raw": "Roh",
   "Download_CSV": "CSV Herunterladen",
+  "Footprint": "Grundfläche",
+
 }

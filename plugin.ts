@@ -8,9 +8,8 @@ type Record = {
   format: (value: any) => string;
 };
 
-const compareVariantsModal = new ui.Modal(i18n.Compare_Variants, ui.small);
+const compareVariantsModal = new ui.Modal(i18n.Compare_Variants, ui.medium);
 const showDetailsModal = new ui.Modal(i18n.View_Details, ui.medium);
-const csvModal = new ui.Modal(i18n.CSV_Export);
 
 const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
 
@@ -18,10 +17,13 @@ const toCsv = (rows: any[][]): string => {
   return rows.map((row) => row.join(",")).join("\n");
 };
 
+const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0);
+
 const onShowViewDetails = async () => {
   showDetailsModal.removeAllChildren();
 
-  const buildings = await data.selectedProject.selectedVariant.buildings;
+  const variant = await data.selectedProject.selectedVariant;
+  const buildings = variant.buildings;
   const columns = buildings.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
 
   const metricsRecords: Record[] = [
@@ -29,11 +31,13 @@ const onShowViewDetails = async () => {
     { label: i18n.Floor_Area, data: buildings.map((b) => b.floorArea.total), format: (value) => value.toMetricAreaString() },
     { label: i18n.Area_above_ground, data: buildings.map((b) => b.floorArea.overground), format: (value) => value.toMetricAreaString() },
     { label: i18n.Area_below_ground, data: buildings.map((b) => b.floorArea.underground), format: (value) => value.toMetricAreaString() },
+    { label: i18n.Footprint, data: buildings.map((b) => b.footprint), format: (value) => value.toMetricAreaString() },
   ];
   const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  showDetailsModal.add(new ui.Button(i18n.CSV_Export, () => onExportToCsv(metricsTable)));
   showDetailsModal.add(metricsTable);
+  
+  showDetailsModal.add(new ui.Button(i18n.CSV_Export, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable)));
 
   showDetailsModal.open();
 };
@@ -49,10 +53,10 @@ const onShowCompareVariants = async () => {
     { label: i18n.Floor_Area, data: variants.map((v) => v.totalFloorArea.total), format: (value) => value.toMetricAreaString() },
     { label: i18n.Area_above_ground, data: variants.map((v) => v.totalFloorArea.overground), format: (value) => value.toMetricAreaString() },
     { label: i18n.Area_below_ground, data: variants.map((v) => v.totalFloorArea.underground), format: (value) => value.toMetricAreaString() },
+    { label: i18n.Footprint, data: variants.map((v) => sum(v.buildings.map((b) => b.footprint))), format: (value) => value.toMetricAreaString() },
   ];
   const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  compareVariantsModal.add(new ui.Button(i18n.CSV_Export, () => onExportToCsv(metricsTable)));
   compareVariantsModal.add(metricsTable);
 
   const usageTypes = variants.flatMap((v) => v.usages.map((u) => u.type));
@@ -68,34 +72,28 @@ const onShowCompareVariants = async () => {
   }));
   const usagesColumns = [new ui.Column<Record>(i18n.Usages, (item) => item.label), ...columns];
   const usagesTable = new ui.Table(usagesRecords, usagesColumns);
-  compareVariantsModal.add(new ui.Button(i18n.CSV_Export, () => onExportToCsv(usagesTable)));
   compareVariantsModal.add(usagesTable);
+  
+  compareVariantsModal.add(new ui.Button(i18n.CSV_Export, () => {
+    exportToCsv(`${data.selectedProject.name}-overview.csv`, metricsTable);
+    exportToCsv(`${data.selectedProject.name}-usages.csv`, usagesTable);
+  }));
 
   compareVariantsModal.open();
 };
 
-const onExportToCsv = (table: ui.Table<Record>) => {
-  const formattedCsv = toCsv([
-    table.getColumns().map((column) => column.name),
-    ...table.getRecords().map((record) => table.getColumns().map((column, idx) => column.resolve(record, idx))
-    ),
-  ]);
-  const rawCsv = toCsv([
+const exportToCsv = (filename: string, table: ui.Table<Record>) => {
+  const csv = toCsv([
     table.getColumns().map((column) => column.name),
     ...table.getRecords().map((record) => [record.label, ...record.data]),
   ]);
-
-  csvModal.removeAllChildren();
-  csvModal.add(new ui.Label(i18n.Formatted));
-  csvModal.add(new ui.Code(formattedCsv));
-  csvModal.add(new ui.Button(i18n.Download_CSV, () => ui.download(File.fromString("formatted.csv", formattedCsv))));
-
-  csvModal.add(new ui.Label(i18n.Raw));
-  csvModal.add(new ui.Code(rawCsv));
-  csvModal.add(new ui.Button(i18n.Download_CSV, () => ui.download(File.fromString("raw.csv", formattedCsv))));
-  csvModal.open();
+  ui.download(File.fromString(filename, csv));
 };
 
+let variantSubscription;
+let volumeSubscription;
+let areaSubscription;
+let buildingSubscription;
 data.onProjectSelect.subscribe(async (project) => {
   app.removeAllChildren();
   // section for active variant information
@@ -109,22 +107,44 @@ data.onProjectSelect.subscribe(async (project) => {
   section.add(overgroundAreaLabel);
   const undergroundAreaLabel = new ui.LabeledValue(i18n.Area_below_ground, "- m²");
   section.add(undergroundAreaLabel);
+  const footprintLabel = new ui.LabeledValue(i18n.Footprint, "- m²");
+  section.add(footprintLabel);
 
+  const showVolume = (volume: data.Metric) => {
+    volumeLabel.value = volume.total.toMetricVolumeString();
+  }
+  const showArea = (area: data.Metric) => {
+    areaLabel.value = area.total.toMetricAreaString();
+    overgroundAreaLabel.value = area.overground.toMetricAreaString();
+    undergroundAreaLabel.value = area.underground.toMetricAreaString();
+  }
+  const showFootprint = (buildings: data.Building[]) => {
+    footprintLabel.value = sum(buildings.map((b) => b.footprint)).toMetricAreaString();
+  }
+
+  variantSubscription?.unsubscribe();
   if (project) {
     // get information of active variant
-    project.onVariantSelect.subscribe((variant) => {
+    variantSubscription = project.onVariantSelect.subscribe((variant) => {
+      volumeSubscription?.unsubscribe();
+      areaSubscription?.unsubscribe();
+      buildingSubscription?.unsubscribe();
+
       if (variant) {
-        section.name = variant.name;
-        variant.onTotalVolumeChange.subscribe((volume) => (volumeLabel.value = volume.total.toMetricVolumeString()));
-        variant.onTotalFloorAreaChange.subscribe((area) => {
-          areaLabel.value = area.total.toMetricAreaString();
-          overgroundAreaLabel.value = area.overground.toMetricAreaString();
-          undergroundAreaLabel.value = area.underground.toMetricAreaString();
-        });
+        section.name = variant.name;        
+        showVolume(variant.totalVolume);
+        showArea(variant.totalFloorArea);
+        showFootprint(variant.buildings);
+        volumeSubscription = variant.onTotalVolumeChange.subscribe(showVolume);
+        areaSubscription = variant.onTotalFloorAreaChange.subscribe(showArea);
+        buildingSubscription = variant.onBuildingsChange.subscribe(showFootprint);
       } else {
         section.name = i18n.No_variant_selected;
         areaLabel.value = "- m²";
         volumeLabel.value = "- m³";
+        overgroundAreaLabel.value = "- m²"; 
+        undergroundAreaLabel.value = "- m²";
+        footprintLabel.value = "- m²";
       }
     });
 

@@ -13,4 +13,5 @@ export default {
   "Formatted": "Formatted",
   "Raw": "Raw",
   "Download_CSV": "Download CSV",
+  "Footprint": "Footprint",
 }
