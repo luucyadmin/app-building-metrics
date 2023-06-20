@@ -151,7 +151,16 @@ data.onProjectSelect.subscribe(async (project) => {
       }
     });
 
-    app.add(new ui.Button(i18n.View_Details, onShowViewDetails));
-    app.add(new ui.Button(i18n.Compare_Variants, onShowCompareVariants));
+    const viewDetailsButton = new ui.Button(i18n.View_Details, onShowViewDetails);
+    viewDetailsButton.primary = true;
+    app.add(viewDetailsButton);
+
+    const compareVariansButton = new ui.Button(i18n.Compare_Variants);
+    compareVariansButton.onClick.subscribe(async () => {
+      compareVariansButton.loading = true;
+      await onShowCompareVariants();
+      compareVariansButton.loading = false;
+    });
+    app.add(compareVariansButton);
   }
 });
