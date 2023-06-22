@@ -9,7 +9,7 @@
 		"data"
 	],
 	"dependencies": {
-		"luucy-types": "github:luucyadmin/luucy-types#next/primary-button"
+		"luucy-types": "github:luucyadmin/luucy-types#next/2.8.0"
 	},
 	"devDependencies": {
 		"typescript": "^4.6.3"

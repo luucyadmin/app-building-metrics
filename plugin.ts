@@ -37,8 +37,19 @@ const onShowViewDetails = () => {
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
   showDetailsModal.add(metricsTable);
   
-  showDetailsModal.add(new ui.Button(i18n.CSV_Export, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable)));
+  console.log(buildings);
+  const usageTypes = buildings.flatMap((b) => b.buildingUsages.map((u) => u.name));
+  const uniqueUsageTypes = usageTypes.filter((t, i, a) => a.indexOf(t) === i);
+  const usagesRecords: Record[] = uniqueUsageTypes.map((type) => ({
+    label: type,
+    data: buildings.map((b) => b.buildingUsages.map(u => u.name).includes(type) ? 1 / b.buildingUsages.length : 0),
+    format: toPercentage,
+  }));
+  const usagesColumns = [new ui.Column<Record>(i18n.Usages, (item) => item.label), ...columns];
+  const usagesTable = new ui.Table(usagesRecords, usagesColumns);
+  showDetailsModal.add(usagesTable);
 
+  showDetailsModal.add(new ui.Button(i18n.CSV_Export, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable)));
   showDetailsModal.open();
 };
 
@@ -93,10 +104,10 @@ const exportToCsv = (filename: string, table: ui.Table<Record>) => {
   ui.download(File.fromString(filename, csv));
 };
 
-let variantSubscription;
-let volumeSubscription;
-let areaSubscription;
-let buildingSubscription;
+let variantSubscription: Subscription<data.Variant>;
+let volumeSubscription: Subscription<data.Metric>;
+let areaSubscription: Subscription<data.Metric>;
+let buildingsSubscription: Subscription<number>;
 data.onProjectSelect.subscribe(async (project) => {
   app.removeAllChildren();
   // section for active variant information
@@ -121,8 +132,8 @@ data.onProjectSelect.subscribe(async (project) => {
     overgroundAreaLabel.value = area.overground.toMetricAreaString();
     undergroundAreaLabel.value = area.underground.toMetricAreaString();
   }
-  const showFootprint = (buildings: data.Building[]) => {
-    footprintLabel.value = sum(buildings.map((b) => b.footprint)).toMetricAreaString();
+  const showFootprint = (footprintArea: number) => {
+    footprintLabel.value = footprintArea.toMetricAreaString();
   }
 
   variantSubscription?.unsubscribe();
@@ -131,16 +142,16 @@ data.onProjectSelect.subscribe(async (project) => {
     variantSubscription = project.onVariantSelect.subscribe((variant) => {
       volumeSubscription?.unsubscribe();
       areaSubscription?.unsubscribe();
-      buildingSubscription?.unsubscribe();
+      buildingsSubscription?.unsubscribe();
 
       if (variant) {
         section.name = variant.name;        
         showVolume(variant.totalVolume);
         showArea(variant.totalFloorArea);
-        showFootprint(variant.buildings);
+        showFootprint(variant.footprintArea);
         volumeSubscription = variant.onTotalVolumeChange.subscribe(showVolume);
         areaSubscription = variant.onTotalFloorAreaChange.subscribe(showArea);
-        buildingSubscription = variant.onBuildingsChange.subscribe(showFootprint);
+        buildingsSubscription = variant.onFootprintAreaChange.subscribe(showFootprint);
       } else {
         section.name = i18n.No_variant_selected;
         areaLabel.value = "- m²";
