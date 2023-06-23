@@ -7,3 +7,4 @@
 /// <reference path="../node_modules/luucy-types/scopes/core/index.d.ts" />
 /// <reference path="../node_modules/luucy-types/scopes/ui/index.d.ts" />
 /// <reference path="../node_modules/luucy-types/scopes/data/index.d.ts" />
+/// <reference path="../node_modules/luucy-types/scopes/document/index.d.ts" />

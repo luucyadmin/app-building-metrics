@@ -6,7 +6,8 @@
 	"scopes": [
 		"core",
 		"ui",
-		"data"
+		"data",
+		"document"
 	],
 	"dependencies": {
 		"luucy-types": "github:luucyadmin/luucy-types#next/2.8.0"

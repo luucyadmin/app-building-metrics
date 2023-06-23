@@ -13,10 +13,6 @@ const showDetailsModal = new ui.Modal(i18n.View_Details, ui.medium);
 
 const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
 
-const toCsv = (rows: any[][]): string => {
-  return rows.map((row) => row.join(",")).join("\n");
-};
-
 const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0);
 
 const onShowViewDetails = () => {
@@ -40,7 +36,7 @@ const onShowViewDetails = () => {
   const usages = buildings.flatMap((b) => b.buildingUsages);
   const uniqueUsages = usages.filter((t, i, a) => a.indexOf(t) === i);
   const usagesRecords: Record[] = uniqueUsages.map((usage) => ({
-    label: new ui.LabeledColor(usage.name, usage.color ?? Color.grey),
+    label: new ui.LabeledColor(usage.name, usage.color ?? Color.random()),
     data: buildings.map((b) => b.buildingUsages.map(u => u.name).includes(usage.name) ? 1 / b.buildingUsages.length : 0),
     format: toPercentage,
   }));
@@ -97,11 +93,7 @@ const onShowCompareVariants = async () => {
 };
 
 const exportToCsv = (filename: string, table: ui.Table<Record>) => {
-  const csv = toCsv([
-    table.getColumns().map((column) => column.name),
-    ...table.getRecords().map((record) => [record.label, ...record.data]),
-  ]);
-  ui.download(File.fromString(filename, csv));
+  document.CSV.generateCSV(filename, table.toArray()).download();
 };
 
 let variantSubscription: Subscription<data.Variant>;
