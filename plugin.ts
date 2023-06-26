@@ -18,8 +18,15 @@ const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0);
 const onShowViewDetails = () => {
   showDetailsModal.removeAllChildren();
 
-  const variant = data.selectedProject.selectedVariant;
-  const buildings = variant.buildings;
+  const variant = data.selectedProject?.selectedVariant;
+  const buildings = variant?.buildings;
+
+  if (!buildings) {
+    showDetailsModal.add(new ui.Label(i18n.No_variant_selected));
+    showDetailsModal.open();
+    return;
+  }
+
   const columns = buildings.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
 
   const metricsRecords: Record[] = [
@@ -55,6 +62,13 @@ const onShowCompareVariants = async () => {
   compareVariantsModal.open();
 
   const variants = await data.selectedProject.getVariants();
+
+  if (variants.length < 2) {
+    compareVariantsModal.removeAllChildren();
+    compareVariantsModal.add(new ui.Label(i18n.Not_enough_variants));
+    return;
+  }
+
   const columns = variants.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
 
   const metricsRecords: Record[] = [

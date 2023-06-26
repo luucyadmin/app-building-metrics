@@ -15,4 +15,5 @@ export default {
   "Download_CSV": "Download CSV",
   "Footprint": "Footprint",
   "Loading": "Loading",
+  "Not_enough_variants": "Not enough variants",
 }
