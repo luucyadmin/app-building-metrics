@@ -8,15 +8,12 @@ type Record = {
   format: (value: any) => string;
 };
 
-const compareVariantsModal = new ui.Modal(i18n.Compare_Variants, ui.medium);
-const showDetailsModal = new ui.Modal(i18n.View_Details, ui.medium);
-
 const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
 
 const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0);
 
 const onShowViewDetails = () => {
-  showDetailsModal.removeAllChildren();
+  const showDetailsModal = new ui.Modal(i18n.View_Details, ui.medium);
 
   const variant = data.selectedProject?.selectedVariant;
   const buildings = variant?.buildings;
@@ -52,12 +49,12 @@ const onShowViewDetails = () => {
   const usagesTable = new ui.Table(usagesRecords, usagesColumns);
   showDetailsModal.add(usagesTable);
 
-  showDetailsModal.add(new ui.Button(i18n.CSV_Export, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable)));
+  showDetailsModal.addAction(ui.icons.export, i18n.CSV_Export, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable));
   showDetailsModal.open();
 };
 
 const onShowCompareVariants = async () => {
-  compareVariantsModal.removeAllChildren();
+  const compareVariantsModal = new ui.Modal(i18n.Compare_Variants, ui.medium);
   compareVariantsModal.add(new ui.Label(i18n.Loading));
   compareVariantsModal.open();
 
@@ -95,15 +92,15 @@ const onShowCompareVariants = async () => {
   const usagesColumns = [new ui.Column<Record>(i18n.Usages, (item) => item.label), ...columns];
   const usagesTable = new ui.Table(usagesRecords, usagesColumns);
 
-  const exportButton = new ui.Button(i18n.CSV_Export, () => {
+  compareVariantsModal.addAction(ui.icons.export, i18n.CSV_Export, () => {
     exportToCsv(`${data.selectedProject.name}-overview.csv`, metricsTable);
     exportToCsv(`${data.selectedProject.name}-usages.csv`, usagesTable);
-  })
+  });
+  
   
   compareVariantsModal.removeAllChildren();
   compareVariantsModal.add(metricsTable);
   compareVariantsModal.add(usagesTable);
-  compareVariantsModal.add(exportButton);
 };
 
 const exportToCsv = (filename: string, table: ui.Table<Record>) => {
@@ -172,12 +169,12 @@ data.onProjectSelect.subscribe(async (project) => {
     viewDetailsButton.primary = true;
     app.add(viewDetailsButton);
 
-    const compareVariansButton = new ui.Button(i18n.Compare_Variants);
-    compareVariansButton.onClick.subscribe(async () => {
-      compareVariansButton.loading = true;
+    const compareVariantsButton = new ui.Button(i18n.Compare_Variants);
+    compareVariantsButton.onClick.subscribe(async () => {
+      compareVariantsButton.loading = true;
       await onShowCompareVariants();
-      compareVariansButton.loading = false;
+      compareVariantsButton.loading = false;
     });
-    app.add(compareVariansButton);
+    app.add(compareVariantsButton);
   }
 });
