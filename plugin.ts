@@ -10,8 +10,6 @@ type Record = {
 
 const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
 
-const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0);
-
 const onShowViewDetails = () => {
   const showDetailsModal = new ui.Modal(i18n.View_Details, ui.medium);
 
@@ -73,7 +71,7 @@ const onShowCompareVariants = async () => {
     { label: i18n.Floor_Area, data: variants.map((v) => v.totalFloorArea.total), format: (value) => value.toMetricAreaString() },
     { label: i18n.Area_above_ground, data: variants.map((v) => v.totalFloorArea.overground), format: (value) => value.toMetricAreaString() },
     { label: i18n.Area_below_ground, data: variants.map((v) => v.totalFloorArea.underground), format: (value) => value.toMetricAreaString() },
-    { label: i18n.Footprint, data: variants.map((v) => sum(v.buildings.map((b) => b.footprint))), format: (value) => value.toMetricAreaString() },
+    { label: i18n.Footprint, data: variants.map((v) => v.footprintArea), format: (value) => value.toMetricAreaString() },
   ];
   const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
