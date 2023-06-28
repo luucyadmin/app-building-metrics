@@ -35,17 +35,21 @@ const onShowViewDetails = () => {
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
   showDetailsModal.add(metricsTable);
   
-  const usages = buildings.flatMap((b) => b.buildingUsages);
-  const uniqueUsages = usages.filter((t, i, a) => a.indexOf(t) === i);
-  const usagesRecords: Record[] = uniqueUsages.map((usage) => ({
-    label: new ui.LabeledColor(usage.name, usage.color ?? Color.random()),
-    data: buildings.map((b) => b.buildingUsages.map(u => u.name).includes(usage.name) ? 1 / b.buildingUsages.length : 0),
-    format: toPercentage,
-  }));
-  const usagesColumns = [new ui.Column<Record>(
-    i18n.Usages, (item) => item.label), ...columns];
-  const usagesTable = new ui.Table(usagesRecords, usagesColumns);
-  showDetailsModal.add(usagesTable);
+  // TODO remove this after we have buildings usages supported in SDK
+  showDetailsModal.add(new ui.Paragraph("Note: Only Building version 1 is being displayed"));
+
+  // Hide usage as we are not supporting usages in B1 and B2 in SDK
+  // const usages = buildings.flatMap((b) => b.buildingUsages);
+  // const uniqueUsages = usages.filter((t, i, a) => a.indexOf(t) === i);
+  // const usagesRecords: Record[] = uniqueUsages.map((usage) => ({
+  //   label: new ui.LabeledColor(usage.name, usage.color ?? Color.random()),
+  //   data: buildings.map((b) => b.buildingUsages.map(u => u.name).includes(usage.name) ? 1 / b.buildingUsages.length : 0),
+  //   format: toPercentage,
+  // }));
+  // const usagesColumns = [new ui.Column<Record>(
+  //   i18n.Usages, (item) => item.label), ...columns];
+  // const usagesTable = new ui.Table(usagesRecords, usagesColumns);
+  // showDetailsModal.add(usagesTable);
 
   showDetailsModal.addAction(ui.icons.export, i18n.CSV_Export, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable));
   showDetailsModal.open();
