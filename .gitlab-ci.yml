@@ -1,3 +1,18 @@
+
+variables:
+    # Product ID as t's registered in the Marketplace
+    PRODUCT_ID: '225'
+    # Gitlab GIT user config for pipeline
+    GITLAB_GIT_USR_EMAIL: 'gitlab_pipeline@luucy.ch'
+    GITLAB_GIT_USR_NAME: 'gitlab_pipeline'
+
+    # Variables set by the CI/CD configuration:
+    # - LUUCY_ORG_ADMIN_EMAIL - Luucy Org Admin account email for given environment -> Product owner aca developer
+    # - LUUCY_ORG_ADMIN_PWD - Luucy Org Admin password
+    # - LUUCY_API_URL - Luucy API endpoint
+    # - ARTIFACTORY_CRED - Credentials for Redmin artifactiry in format: [username]:[password]
+
+
 .translation: &translation-base
     image: crowdin/cli
     script:
@@ -6,7 +21,118 @@
 
 stages:
     - translation
+    - version
+    - build
+    - update
+
 
 translation:
     stage: translation
     <<: *translation-base
+
+
+version_read:
+  stage: version
+  image: node:latest
+  script:
+    - |
+        echo "APP_NAME=$(node -p "require('./package.json').name")"  >> app_detail.env
+        echo "Creating a new version of : $APP_NAME"
+        current_version=$(node -p "require('./package.json').version")
+        new_version=$(echo "$current_version" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
+        echo "New version: $new_version"
+        echo "APP_VERSION=$new_version" >> app_detail.env
+  artifacts:
+    paths:
+      - app_detail.env
+
+build_app:
+  stage: build
+  image: node:latest
+  script:
+    - source app_detail.env
+    # Install Luucy-cli and install
+    - echo "Building the $APP_VERSION"
+    - apt-get update  
+    - apt-get install -y expect 
+    - npm i -g luucy-cli
+    - npm i
+    - git config user.email "$GITLAB_GIT_USR_EMAIL"
+    - git config user.name "$GITLAB_GIT_USR_NAME"
+    - |
+        output=$(expect -c "
+        spawn luucy publish
+        expect \"Next version:\" { send \"$APP_VERSION\r\" }
+        expect eof")
+        echo "Publish output: $output"
+    - echo "-------------"
+    - export APP_FILE=$APP_NAME-$APP_VERSION.lpb 
+    - echo "Checking the file:$APP_FILE"
+    - |
+        if [ ! -f bundles/$APP_FILE ]; then
+            echo "File bundles/$APP_FILE does not exists!";
+            exit -1;
+        fi
+    # Upload to artifactory
+    - echo "-------------"
+    - echo "Uploading to the Artifactory"
+    - export APP_PATH="https://redmine.zensys.cz/artifactory/luucy-plugins/$APP_NAME/$APP_FILE" 
+    - curl -u $ARTIFACTORY_CRED -T bundles/$APP_FILE $APP_PATH
+    #  Pass the variables to the next phase
+    - echo "APP_PATH=$APP_PATH" >> app_file.env
+    - echo "APP_VERSION=$APP_VERSION" >> app_file.env
+    - echo "APP_FILE=$APP_FILE" >> app_file.env
+  artifacts:
+    paths:
+      - app_file.env
+
+update_app:
+  stage: update
+  image: node:latest
+  script:
+    - source app_file.env
+    - echo "-------------"
+    # Calling Luucy API /api/login to obtain a apiKey
+    - echo "Login to Luucy"
+    - apt-get update  
+    - apt-get install -y jq
+    - login_payload="{\"login\":\"$LUUCY_ORG_ADMIN_EMAIL\",\"password\":\"$LUUCY_ORG_ADMIN_PWD\", \"rememberMe\":\"true\"}"
+    - |
+        login_resp=$(curl $LUUCY_API_URL/login \
+            --header 'Content-Type: application/json' \
+            --data "$login_payload")
+        apikey=$(echo "$login_resp" | jq -r '.apiKey')
+
+    - echo "-------------"
+    # Calling Luucy API /api/file to upload a new artifact file
+    - curl -o "$APP_FILE" -u $ARTIFACTORY_CRED -sL "$APP_PATH"
+    - echo "Upload file"
+    
+    - upload_response=$(curl -b apiKey2=$apikey $LUUCY_API_URL/file/ -F "file=@$APP_FILE")
+    - fileId=$(echo "$upload_response" | jq -r '.id')
+    - |
+        if [[ -n $fileId && $fileId -gt 0 ]]; then
+            echo "Artefact for $PRODUCT_ID was uploaded to Luucy successfully (id: $fileId)";
+        else
+            echo "Error uploading artefact for $PRODUCT_ID!";
+            exit -1;
+        fi
+    - echo "-------------"
+    # Calling Luucy API /api/plugin to update the plugin with a new artifact
+    - echo "Update plugin"
+    - update_payload="{\"productId\":\"$PRODUCT_ID\",\"version\":\"$APP_VERSION\", \"attachmentId\":\"$fileId\"}"
+    - |
+        update_resp=$(curl -b apiKey2=$apikey $LUUCY_API_URL/plugin/ \
+        --header 'Content-Type: application/json' \
+        --data "$update_payload")
+    - updated_id=$(echo "$update_resp" | jq -r '.id')
+    - |
+        if [[ -n $updated_id && $updated_id -gt 0 ]]; then
+            echo "Product $PRODUCT_ID updated successfully (id: $updated_id)";
+        else
+            echo "Error updating $PRODUCT_ID!";
+            exit -1;
+        fi
+
+
+
