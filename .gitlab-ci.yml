@@ -59,6 +59,8 @@ build_app:
     - npm i
     - git config user.email "$GITLAB_GIT_USR_EMAIL"
     - git config user.name "$GITLAB_GIT_USR_NAME"
+    - git status
+    - git reset .
     - |
         output=$(expect -c "
         spawn luucy publish
