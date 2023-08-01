@@ -60,7 +60,7 @@ build_app:
     - git config user.email "$GITLAB_GIT_USR_EMAIL"
     - git config user.name "$GITLAB_GIT_USR_NAME"
     - git status
-    - git reset .
+    - git reset --hard
     - |
         output=$(expect -c "
         spawn luucy publish
