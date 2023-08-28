@@ -1,7 +1,7 @@
 {
-	"name": "compare-variants",
-	"displayName": "Compare Variants",
-	"version": "1.2.11",
+	"name": "kennzahlen",
+	"displayName": "Kennzahlen",
+	"version": "1.2.12",
 	"internal": true,
 	"scopes": [
 		"core",
