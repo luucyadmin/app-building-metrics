@@ -31,8 +31,24 @@ const onShowViewDetails = () => {
     { label: i18n.Area_below_ground, data: buildings.map((b) => b.floorArea.underground), format: (value) => value.toMetricAreaString() },
     { label: i18n.Footprint, data: buildings.map((b) => b.footprint), format: (value) => value.toMetricAreaString() },
   ];
+
+  // Prepare records for CSV export -> no m2/m3 units in formatting
+  const metricsRecordsExport: Record[] = [
+    { label: i18n.Metrics, data: buildings.map((b) => b.name), format: (value) => value },
+    { label: i18n.Volume, data: buildings.map((b) => b.volume.total), format: (value) => value.toFixed(2) },
+    { label: i18n.Floor_Area, data: buildings.map((b) => b.floorArea.total), format: (value) => value.toFixed(2)},
+    { label: i18n.Area_above_ground, data: buildings.map((b) => b.floorArea.overground), format: (value) => value.toFixed(2) },
+    { label: i18n.Area_below_ground, data: buildings.map((b) => b.floorArea.underground), format: (value) => value.toFixed(2) },
+    { label: i18n.Footprint, data: buildings.map((b) => b.footprint), format: (value) => value},
+  ];
+
   const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
+  const metricsTableExport = new ui.Table(metricsRecordsExport, metricsColumns);
+
+  // By default the exported CSV is inverted to the visualised one
+  metricsTableExport.setInverted(true);
+
   showDetailsModal.add(metricsTable);
 
   // TODO remove this after we have buildings usages supported in SDK
@@ -51,7 +67,7 @@ const onShowViewDetails = () => {
   // const usagesTable = new ui.Table(usagesRecords, usagesColumns);
   // showDetailsModal.add(usagesTable);
 
-  showDetailsModal.addAction(ui.icons.export, i18n.CSV_Export, () => exportToCsv(`${variant.name}-overview.csv`, metricsTable));
+  showDetailsModal.addAction(ui.icons.export, i18n.Export_to_Excel, () => exportToCsv(`${variant.name}-overview.csv`, metricsTableExport));
   showDetailsModal.open();
 };
 
@@ -71,7 +87,7 @@ const onShowCompareVariants = async () => {
   const columns = variants.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
 
   const metricsRecords: Record[] = [
-    { label: i18n.Volume, data: variants.map((v) => v.totalVolume.total), format: (value) => value.toMetricVolumeString() },
+    { label: i18n.Volume, data: variants.map((v) => v.totalVolume.total), format: (value) => value .toMetricVolumeString()},
     { label: i18n.Floor_Area, data: variants.map((v) => v.totalFloorArea.total), format: (value) => value.toMetricAreaString() },
     {
       label: i18n.Area_above_ground,
@@ -85,8 +101,31 @@ const onShowCompareVariants = async () => {
     },
     { label: i18n.Footprint, data: variants.map((v) => v.footprintArea), format: (value) => value.toMetricAreaString() },
   ];
+
+  // Prepare records for CSV export -> no m2/m3 units in formatting
+  const metricsRecordsForExport: Record[] = [
+    { label: i18n.Metrics, data: variants.map((v) => v.name), format: (value) => value },
+    { label: i18n.Volume, data: variants.map((v) => v.totalVolume.total), format: (value) => value.toFixed(2) },
+    { label: i18n.Floor_Area, data: variants.map((v) => v.totalFloorArea.total), format: (value) => value.toFixed(2) },
+    {
+      label: i18n.Area_above_ground,
+      data: variants.map((v) => v.totalFloorArea.overground),
+      format: (value) => value.toFixed(2),
+    },
+    {
+      label: i18n.Area_below_ground,
+      data: variants.map((v) => v.totalFloorArea.underground),
+      format: (value) => value.toFixed(2),
+    },
+    { label: i18n.Footprint, data: variants.map((v) => v.footprintArea), format: (value) => value.toFixed(2) },
+  ];
+
   const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
+  const metricsTableExport = new ui.Table(metricsRecordsForExport, metricsColumns);
+
+  // By default the exported CSV is inverted to the visualised one
+  metricsTableExport.setInverted(true);
 
   // TODO - uncomment when the usages design will be confirmed
   // const usageTypes = variants.flatMap((v) => v.usages.map((u) => u.type));
@@ -103,20 +142,20 @@ const onShowCompareVariants = async () => {
   // const usagesColumns = [new ui.Column<Record>(i18n.Usages, (item) => item.label), ...columns];
   // const usagesTable = new ui.Table(usagesRecords, usagesColumns);
 
-  compareVariantsModal.addAction(ui.icons.export, i18n.CSV_Export, () => {
-    exportToCsv(`${data.selectedProject.name}-overview.csv`, metricsTable);
+  compareVariantsModal.addAction(ui.icons.export, i18n.Export_to_Excel, () => {
+    exportToCsv(`${data.selectedProject.name}-overview.csv`, metricsTableExport);
+
     // TODO - uncomment when the usages design will be confirmed
     // exportToCsv(`${data.selectedProject.name}-usages.csv`, usagesTable);
   });
-
   compareVariantsModal.removeAllChildren();
   compareVariantsModal.add(metricsTable);
   // TODO - uncomment when the usages design will be confirmed
   // compareVariantsModal.add(usagesTable);
 };
 
-const exportToCsv = (filename: string, table: ui.Table<Record>) => {
-  document.CSV.generateCSV(filename, table.toArray()).download();
+const exportToCsv = (filename: string, table: ui.Table<Record> , addHeader?: boolean) => {
+  document.CSV.generateCSV(filename, table.toArray(), addHeader).download();
 };
 
 let variantSubscription: Subscription<data.Variant>;
