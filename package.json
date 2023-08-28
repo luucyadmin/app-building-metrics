@@ -1,7 +1,7 @@
 {
 	"name": "kennzahlen",
 	"displayName": "Kennzahlen",
-	"version": "1.2.12",
+	"version": "1.2.13",
 	"internal": true,
 	"scopes": [
 		"core",
