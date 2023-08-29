@@ -10,9 +10,9 @@
 		"document"
 	],
 	"dependencies": {
-		"luucy-types": "github:luucyadmin/luucy-types#next/2.8.0"
+		"luucy-types": "github:luucyadmin/luucy-types#next/2.9.0"
 	},
 	"devDependencies": {
-		"typescript": "^4.6.3"
+		"typescript": "^4.9.3"
 	}
 }

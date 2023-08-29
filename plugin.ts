@@ -22,7 +22,9 @@ const onShowViewDetails = () => {
     return;
   }
 
-  const columns = buildings.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
+  const columns = buildings.map((variant, index) => 
+    new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { minWidth: '100px', width: 100 })
+  );
 
   const metricsRecords: Record[] = [
     { label: i18n.Volume, data: buildings.map((b) => b.volume.total), format: (value) => value.toMetricVolumeString() },
@@ -42,7 +44,8 @@ const onShowViewDetails = () => {
     { label: i18n.Footprint, data: buildings.map((b) => b.footprint), format: (value) => value},
   ];
 
-  const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
+  const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics, (item) => item.label, { align: 'left', sticky: true, minWidth: 100 });
+  const metricsColumns = [metricsLabelColumn, ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
   const metricsTableExport = new ui.Table(metricsRecordsExport, metricsColumns);
 
@@ -52,7 +55,7 @@ const onShowViewDetails = () => {
   showDetailsModal.add(metricsTable);
 
   // TODO remove this after we have buildings usages supported in SDK
-  showDetailsModal.add(new ui.Paragraph("Note: Only Building version 1 is being displayed"));
+  showDetailsModal.add(new ui.Paragraph(i18n.B1_note));
 
   // Hide usage as we are not supporting usages in B1 and B2 in SDK
   // const usages = buildings.flatMap((b) => b.buildingUsages);
@@ -84,7 +87,9 @@ const onShowCompareVariants = async () => {
     return;
   }
 
-  const columns = variants.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
+  const columns = variants.map((variant, index) => 
+    new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { minWidth: 100, width: 100 })
+  );
 
   const metricsRecords: Record[] = [
     { label: i18n.Volume, data: variants.map((v) => v.totalVolume.total), format: (value) => value.toMetricVolumeString()},
@@ -120,7 +125,8 @@ const onShowCompareVariants = async () => {
     { label: i18n.Footprint, data: variants.map((v) => v.footprintArea), format: (value) => value.toFixed(2) },
   ];
 
-  const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
+  const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics, (item) => item.label, { align: 'left', sticky: true, minWidth: 100 });
+  const metricsColumns = [metricsLabelColumn, ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
   const metricsTableExport = new ui.Table(metricsRecordsForExport, metricsColumns);  
 
@@ -139,9 +145,10 @@ const onShowCompareVariants = async () => {
   //   }),
   //   format: toPercentage,
   // }));
-  // const usagesColumns = [new ui.Column<Record>(i18n.Usages, (item) => item.label), ...columns];
+  // const usagesLabelColumn = new ui.Column<Record>(i18n.Usages, (item) => item.label, { align: 'left', sticky: true, minWidth: 100 });
+  // const usagesColumns = [usagesLabelColumn, ...columns];
   // const usagesTable = new ui.Table(usagesRecords, usagesColumns);
-
+  
   compareVariantsModal.addAction(ui.icons.export, i18n.Export_to_Excel, () => {
     exportToCsv(`${data.selectedProject.name}-overview.csv`, metricsTableExport);
 
