@@ -87,7 +87,7 @@ const onShowCompareVariants = async () => {
   const columns = variants.map((variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index])));
 
   const metricsRecords: Record[] = [
-    { label: i18n.Volume, data: variants.map((v) => v.totalVolume.total), format: (value) => value .toMetricVolumeString()},
+    { label: i18n.Volume, data: variants.map((v) => v.totalVolume.total), format: (value) => value.toMetricVolumeString()},
     { label: i18n.Floor_Area, data: variants.map((v) => v.totalFloorArea.total), format: (value) => value.toMetricAreaString() },
     {
       label: i18n.Area_above_ground,
@@ -122,7 +122,7 @@ const onShowCompareVariants = async () => {
 
   const metricsColumns = [new ui.Column<Record>(i18n.Metrics, (item) => item.label), ...columns];
   const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  const metricsTableExport = new ui.Table(metricsRecordsForExport, metricsColumns);
+  const metricsTableExport = new ui.Table(metricsRecordsForExport, metricsColumns);  
 
   // By default the exported CSV is inverted to the visualised one
   metricsTableExport.setInverted(true);
@@ -155,7 +155,11 @@ const onShowCompareVariants = async () => {
 };
 
 const exportToCsv = (filename: string, table: ui.Table<Record> , addHeader?: boolean) => {
-  document.CSV.generateCSV(filename, table.toArray(), addHeader).download();
+  // Every item in the data is being resolved to the ui.Label so we need to map into simple values
+  const data = table.toArray().map(row => row.map(col => (col as ui.Label).content
+    ));
+
+  document.CSV.generateCSV(filename, data as [][], addHeader).download();
 };
 
 let variantSubscription: Subscription<data.Variant>;
