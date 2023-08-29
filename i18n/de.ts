@@ -16,4 +16,5 @@ export default {
   "Footprint": "Grundfläche",
   "Loading": "Laden",
   "Not_enough_variants": "Nicht genug Varianten",
+  "B1_note": "Hinweis: Es werden nur Gebäude der Version 1 angezeigt."
 }
