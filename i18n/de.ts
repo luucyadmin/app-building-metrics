@@ -9,7 +9,7 @@ export default {
   "Usages": "Nutzung",
   "No_variant_selected": "Keine Variante ausgewählt",
   "Selected_Variant": "Ausgewählte Variante",
-  "CSV_Export": "CSV Export",
+  "Export_to_Excel": "Exportieren nach Excel (CSV)",
   "Formatted": "Formatiert",
   "Raw": "Raw",
   "Download_CSV": "CSV herunterladen",
