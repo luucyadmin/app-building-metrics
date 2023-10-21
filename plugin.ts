@@ -1,6 +1,8 @@
 import i18n from "./i18n";
+import config from "./config";
 
 const app = ui.createProjectPanelSection();
+const features = config.features;
 
 type Record = {
   label: string | ui.Element;
@@ -9,6 +11,14 @@ type Record = {
 };
 
 const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
+const disabledRecords = (b: Record) => {
+  for(var f in features) {
+    if(features[f] === false && b.label === i18n[f]) {
+      return false;
+    }
+    return true;
+  }
+};
 
 const onShowViewDetails = () => {
   const showDetailsModal = new ui.Modal(i18n.View_Details, ui.medium);
@@ -46,8 +56,8 @@ new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { m
 
   const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics, (item) => item.label, { align: 'left', sticky: true, minWidth: 100 });
   const metricsColumns = [metricsLabelColumn, ...columns];
-  const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  const metricsTableExport = new ui.Table(metricsRecordsExport, metricsColumns);
+  const metricsTable = new ui.Table(metricsRecords.filter(disabledRecords), metricsColumns);
+  const metricsTableExport = new ui.Table(metricsRecordsExport.filter(disabledRecords), metricsColumns);
 
   // By default the exported CSV is inverted to the visualised one
   metricsTableExport.setInverted(true);
@@ -55,7 +65,6 @@ new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { m
   showDetailsModal.add(metricsTable);
 
 
-  // Hide usage as we are not supporting usages in B1 and B2 in SDK
   // const usages = buildings.flatMap((b) => b.buildingUsages);
   // const uniqueUsages = usages.filter((t, i, a) => a.indexOf(t) === i);
   // const usagesRecords: Record[] = uniqueUsages.map((usage) => ({
@@ -125,8 +134,8 @@ const onShowCompareVariants = async () => {
 
   const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics, (item) => item.label, { align: 'left', sticky: true, minWidth: 100 });
   const metricsColumns = [metricsLabelColumn, ...columns];
-  const metricsTable = new ui.Table(metricsRecords, metricsColumns);
-  const metricsTableExport = new ui.Table(metricsRecordsForExport, metricsColumns);
+  const metricsTable = new ui.Table(metricsRecords.filter(disabledRecords), metricsColumns);
+  const metricsTableExport = new ui.Table(metricsRecordsForExport.filter(disabledRecords), metricsColumns);
 
   // By default the exported CSV is inverted to the visualised one
   metricsTableExport.setInverted(true);
@@ -185,7 +194,7 @@ data.onProjectSelect.subscribe(async (project) => {
   const undergroundAreaLabel = new ui.LabeledValue(i18n.Area_below_ground, "- m²");
   section.add(undergroundAreaLabel);
   const footprintLabel = new ui.LabeledValue(i18n.Footprint, "- m²");
-  section.add(footprintLabel);
+  features.Footprint ? section.add(footprintLabel) : null;
 
   const showVolume = (volume: data.Metric) => {
     volumeLabel.value = volume.total.toMetricVolumeString();
