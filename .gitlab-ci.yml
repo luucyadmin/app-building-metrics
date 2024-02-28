@@ -1,43 +1,44 @@
-
 variables:
-    # Product ID as t's registered in the Marketplace
-    PRODUCT_ID: '225'
-    # Gitlab GIT user config for pipeline
-    GITLAB_GIT_USR_EMAIL: 'gitlab_pipeline@luucy.ch'
-    GITLAB_GIT_USR_NAME: 'gitlab_pipeline'
+  # Product ID as t's registered in the Marketplace
+  PRODUCT_ID: '225'
+  GITLAB_GIT_USR_EMAIL: 'gitlab_pipeline@luucy.ch'
+  GITLAB_GIT_USR_NAME: 'gitlab_pipeline'
+  GITLAB_REGISTRY_URL: '$CI_API_V4_URL/projects/43757880/packages/generic'
 
-    # Variables set by the CI/CD configuration:
-    # - LUUCY_ORG_ADMIN_EMAIL - Luucy Org Admin account email for given environment -> Product owner aca developer
-    # - LUUCY_ORG_ADMIN_PWD - Luucy Org Admin password
-    # - LUUCY_API_URL - Luucy API endpoint
-    # - ARTIFACTORY_CRED - Credentials for Redmin artifactiry in format: [username]:[password]
-
-
-.translation: &translation-base
-    image: crowdin/cli
-    script:
-    - echo crowdin upload sources
-    - crowdin upload sources -T $CROWDIN_API_TOKEN -i $CROWDIN_PROJECT_ID
-
+  # Variables set by the CI/CD configuration:
+  # - LUUCY_ORG_ADMIN_EMAIL - Luucy Org Admin account email for given environment -> Product owner aca developer
+  # - LUUCY_ORG_ADMIN_PWD - Luucy Org Admin password
+  # - LUUCY_API_URL - Luucy API endpoint
+  # - ARTIFACTORY_CRED - Credentials for Redmin artifactiry in format: [username]:[password]
+ 
 stages:
-    - translation
-    - version
-    - build
-    - update
+  - translation
+  - version
+  - build
+  - update
 
+dummy:
+  stage: translation
+  script: echo "Dummy job for merge-request so that the pipeline is triggered."
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
 translation:
-    stage: translation
-    <<: *translation-base
-
+  stage: translation
+  image: crowdin/cli
+  script:
+    - crowdin upload sources --token $CROWDIN_API_TOKEN --project-id $CROWDIN_PROJECT_ID
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
 version_read:
   stage: version
   image: node:latest
   script:
     - |
-        echo "APP_NAME=$(node -p "require('./package.json').name")"  >> app_detail.env
+        APP_NAME=$(node -p "require('./package.json').name")
         echo "Creating a new version of : $APP_NAME"
+        echo "APP_NAME=$APP_NAME"  >> app_detail.env
         current_version=$(node -p "require('./package.json').version")
         new_version=$(echo "$current_version" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
         echo "New version: $new_version"
@@ -45,28 +46,26 @@ version_read:
   artifacts:
     paths:
       - app_detail.env
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
 build_app:
   stage: build
   image: node:latest
   script:
     - source app_detail.env
-    # Install Luucy-cli and install
     - echo "Building the $APP_VERSION"
-    - apt-get update  
-    - apt-get install -y expect 
+    - apt-get update
+    - apt-get install -y jq
     - npm i -g luucy-cli
     - npm i
     - git config user.email "$GITLAB_GIT_USR_EMAIL"
     - git config user.name "$GITLAB_GIT_USR_NAME"
+    - git remote add gitlab_origin https://repository-write:${REPOSITORY_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
     - git status
     - git reset --hard
-    - |
-        output=$(expect -c "
-        spawn luucy publish
-        expect \"Next version:\" { send \"$APP_VERSION\r\" }
-        expect eof")
-        echo "Publish output: $output"
+    - luucy scope build
+    - luucy publish $APP_VERSION
     - echo "-------------"
     - export APP_FILE=$APP_NAME-$APP_VERSION.lpb 
     - echo "Checking the file:$APP_FILE"
@@ -75,11 +74,21 @@ build_app:
             echo "File bundles/$APP_FILE does not exists!";
             exit -1;
         fi
-    # Upload to artifactory
     - echo "-------------"
-    - echo "Uploading to the Artifactory"
-    - export APP_PATH="https://redmine.zensys.cz/artifactory/luucy-plugins/$APP_NAME/$APP_FILE" 
-    - curl -u $ARTIFACTORY_CRED -T bundles/$APP_FILE $APP_PATH
+    - echo "Uploading to the Package registry"
+    - |
+      upload_resp=$(curl $GITLAB_REGISTRY_URL/$APP_NAME/$APP_VERSION/$APP_FILE \
+        --header "PRIVATE-TOKEN: $PACKAGE_REGISTRY_TOKEN" \
+        --upload-file bundles/$APP_FILE)
+    - upload_message=$(echo "$upload_resp" | jq -r '.message')
+    - |
+        if [[ "$upload_message" == "201 Created" ]]; then
+            echo "Bundle $APP_FILE uploaded successfully";
+        else
+            echo "Error uploading bundle $APP_FILE: $upload_message!";
+            exit -1;
+        fi
+    - git push gitlab_origin HEAD:$CI_COMMIT_REF_NAME -o ci.skip
     #  Pass the variables to the next phase
     - echo "APP_PATH=$APP_PATH" >> app_file.env
     - echo "APP_VERSION=$APP_VERSION" >> app_file.env
@@ -87,6 +96,9 @@ build_app:
   artifacts:
     paths:
       - app_file.env
+      - bundles/
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
 update_app:
   stage: update
