@@ -1,6 +1,6 @@
-import de from "./i18n/de";
-import en from "./i18n/en";
-import fr from "./i18n/fr";
+import de from "./i18n/building-metrics.de";
+import en from "./i18n/building-metrics.en";
+import fr from "./i18n/building-metrics.fr";
 
 type I18nParams = {[key: string]: any};
 type I18nFunction = {

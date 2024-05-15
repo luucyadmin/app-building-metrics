@@ -16,5 +16,5 @@ export default {
   Footprint: 'Footprint',
   Loading: 'Loading',
   Not_enough_variants: 'Not enough variants',
-  B1_note: 'Note: Only Buildings version 1 are displayed'
+  B1_note: 'Note: Only Buildings version 1 are displayed',
 }
