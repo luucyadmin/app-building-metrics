@@ -11,7 +11,7 @@
 		"document"
 	],
 	"dependencies": {
-		"luucy-types": "github:luucyadmin/luucy-types#next/building2-onboarding"
+		"luucy-types": "^10.24.11"
 	},
 	"devDependencies": {
 		"typescript": "^4.9.3"
