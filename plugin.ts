@@ -12,8 +12,8 @@ type Record = {
 
 const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
 const disabledRecords = (b: Record) => {
-  for(var f in features) {
-    if(features[f] === false && b.label === i18n[f]) {
+  for (var f in features) {
+    if (features[f] === false && b.label === i18n[f]) {
       return false;
     }
     return true;
@@ -24,7 +24,7 @@ const onShowViewDetails = () => {
   const showDetailsModal = new ui.Modal(i18n.View_Details(), ui.medium);
 
   const variant = data.selectedProject?.selectedVariant;
-  const buildings = variant?.buildings;
+  const buildings = variant?.buildings.filter((b) => b.volume.total > 0 || b.floorArea.total > 0 || b.footprint > 0);
 
   if (!buildings) {
     showDetailsModal.add(new ui.Label(i18n.No_variant_selected()));
@@ -32,9 +32,9 @@ const onShowViewDetails = () => {
     return;
   }
 
-const columns = buildings.map((variant, index) => 
-new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { minWidth: '100px', width: 100 })
-);
+  const columns = buildings.map(
+    (variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { minWidth: "100px", width: 100 })
+  );
 
   const metricsRecords: Record[] = [
     { label: i18n.Volume(), data: buildings.map((b) => b.volume.total), format: (value) => value.toMetricVolumeString() },
@@ -48,13 +48,13 @@ new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { m
   const metricsRecordsExport: Record[] = [
     { label: i18n.Metrics(), data: buildings.map((b) => b.name), format: (value) => value },
     { label: i18n.Volume(), data: buildings.map((b) => b.volume.total), format: (value) => value.toFixed(2) },
-    { label: i18n.Floor_Area(), data: buildings.map((b) => b.floorArea.total), format: (value) => value.toFixed(2)},
+    { label: i18n.Floor_Area(), data: buildings.map((b) => b.floorArea.total), format: (value) => value.toFixed(2) },
     { label: i18n.Area_above_ground(), data: buildings.map((b) => b.floorArea.overground), format: (value) => value.toFixed(2) },
     { label: i18n.Area_below_ground(), data: buildings.map((b) => b.floorArea.underground), format: (value) => value.toFixed(2) },
-    { label: i18n.Footprint(), data: buildings.map((b) => b.footprint), format: (value) => value},
+    { label: i18n.Footprint(), data: buildings.map((b) => b.footprint), format: (value) => value },
   ];
 
-  const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics(), (item) => item.label, { align: 'left', sticky: true, minWidth: 100 });
+  const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics(), (item) => item.label, { align: "left", sticky: true, minWidth: 100 });
   const metricsColumns = [metricsLabelColumn, ...columns];
   const metricsTable = new ui.Table(metricsRecords.filter(disabledRecords), metricsColumns);
   const metricsTableExport = new ui.Table(metricsRecordsExport.filter(disabledRecords), metricsColumns);
@@ -63,7 +63,6 @@ new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { m
   metricsTableExport.setInverted(true);
 
   showDetailsModal.add(metricsTable);
-
 
   // const usages = buildings.flatMap((b) => b.buildingUsages);
   // const uniqueUsages = usages.filter((t, i, a) => a.indexOf(t) === i);
@@ -77,7 +76,9 @@ new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { m
   // const usagesTable = new ui.Table(usagesRecords, usagesColumns);
   // showDetailsModal.add(usagesTable);
 
-  showDetailsModal.addAction(ui.icons.export, i18n.Export_to_Excel(), () => exportToCsv(`${variant.name}-overview.csv`, metricsTableExport));
+  showDetailsModal.addAction(ui.icons.export, i18n.Export_to_Excel(), () =>
+    exportToCsv(`${variant.name}-overview.csv`, metricsTableExport)
+  );
   showDetailsModal.open();
 };
 
@@ -86,7 +87,11 @@ const onShowCompareVariants = async () => {
   compareVariantsModal.add(new ui.Label(i18n.Loading()));
   compareVariantsModal.open();
 
-  const variants = await data.selectedProject.getVariants();
+  const vData = (await data.selectedProject.getVariants());
+
+  const variants = vData.filter(
+    (v) => v.totalVolume.total > 0 || v.totalFloorArea.total > 0 || v.footprintArea > 0
+  );
 
   if (variants.length < 2) {
     compareVariantsModal.removeAllChildren();
@@ -94,12 +99,12 @@ const onShowCompareVariants = async () => {
     return;
   }
 
-  const columns = variants.map((variant, index) => 
-    new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { minWidth: 100, width: 100 })
+  const columns = variants.map(
+    (variant, index) => new ui.Column<Record>(variant.name, (item) => item.format(item.data[index]), { minWidth: 100, width: 100 })
   );
 
   const metricsRecords: Record[] = [
-    { label: i18n.Volume(), data: variants.map((v) => v.totalVolume.total), format: (value) => value.toMetricVolumeString()},
+    { label: i18n.Volume(), data: variants.map((v) => v.totalVolume.total), format: (value) => value.toMetricVolumeString() },
     { label: i18n.Floor_Area(), data: variants.map((v) => v.totalFloorArea.total), format: (value) => value.toMetricAreaString() },
     {
       label: i18n.Area_above_ground(),
@@ -132,7 +137,7 @@ const onShowCompareVariants = async () => {
     { label: i18n.Footprint(), data: variants.map((v) => v.footprintArea), format: (value) => value.toFixed(2) },
   ];
 
-  const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics(), (item) => item.label, { align: 'left', sticky: true, minWidth: 100 });
+  const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics(), (item) => item.label, { align: "left", sticky: true, minWidth: 100 });
   const metricsColumns = [metricsLabelColumn, ...columns];
   const metricsTable = new ui.Table(metricsRecords.filter(disabledRecords), metricsColumns);
   const metricsTableExport = new ui.Table(metricsRecordsForExport.filter(disabledRecords), metricsColumns);
@@ -168,10 +173,9 @@ const onShowCompareVariants = async () => {
   // compareVariantsModal.add(usagesTable);
 };
 
-const exportToCsv = (filename: string, table: ui.Table<Record> , addHeader?: boolean) => {
+const exportToCsv = (filename: string, table: ui.Table<Record>, addHeader?: boolean) => {
   // Every item in the data is being resolved to the ui.Label so we need to map into simple values
-  const data = table.toArray().map(row => row.map(col => (col as ui.Label).content
-    ));
+  const data = table.toArray().map((row) => row.map((col) => (col as ui.Label).content));
 
   document.CSV.generateCSV(filename, data as [][], addHeader).download();
 };
