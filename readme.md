@@ -3,6 +3,7 @@
 Example plugin to compare areal and volume data of variants in [LUUCY](https://luucy.ch/).
 
 App to compare and export area and volumetric building data of variants imported or modelled in LUUCY.
+The imported objects are also included when their attributes (volume, area,...) are manually defined after import.
 
 ## Requirements
 - [Node JS](https://nodejs.org/en/)
