@@ -90,10 +90,10 @@ const onShowCompareVariants = async () => {
   const vData = (await data.selectedProject.getVariants());
 
   const variants = vData.filter(
-    (v) => v.totalVolume.total > 0 || v.totalFloorArea.total > 0 || v.footprintArea > 0
+    (v) => v.totalVolume.total > 0 && v.totalFloorArea.total > 0 && v.footprintArea > 0
   );
 
-  if (variants.length < 2) {
+  if (variants.length < 1) {
     compareVariantsModal.removeAllChildren();
     compareVariantsModal.add(new ui.Label(i18n.Not_enough_variants()));
     return;
