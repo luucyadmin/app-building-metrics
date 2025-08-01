@@ -8,6 +8,7 @@ export default {
   Metrics: "Métriques",
   Usages: "Utilisation",
   No_variant_selected: "Aucune variante sélectionnée",
+  No_building: 'Aucun bâtiment dans la variante sélectionnée',
   Selected_Variant: "Variante sélectionnée",
   Export_to_Excel: "Exportation vers Excel (CSV)",
   Formatted: "Formaté",
@@ -16,5 +17,4 @@ export default {
   Footprint: "Empreinte",
   Loading: "Chargement",
   Not_enough_variants: "Pas assez de variantes",
-  B1_note: 'Note: Only Buildings version 1 are displayed'
 };
