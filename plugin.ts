@@ -24,7 +24,6 @@ let variantBuildings: data.Building[] = [];
 let variantName: string | undefined = undefined;
 
 const updateBuildings = (buildings: data.Building[]) => {
-console.log("Buildings updated: ", buildings);
   variantBuildings = buildings;
 
 }
@@ -39,7 +38,7 @@ const onShowViewDetails = () => {
   }
 
   const columns = variantBuildings.map(
-    (variant, index) => new ui.Column<Record>(variantName, (item) => item.format(item.data[index]), { minWidth: "100px", width: 100 })
+    (building, index) => new ui.Column<Record>(building.name, (item) => item.format(item.data[index]), { minWidth: "100px", width: 100 })
   );
 
   const metricsRecords: Record[] = [
@@ -89,7 +88,7 @@ const onShowViewDetails = () => {
 };
 
 const onShowCompareVariants = async () => {
-  const compareVariantsModal = new ui.Modal(i18n.Compare_Variants(), ui.small);
+  const compareVariantsModal = new ui.Modal(i18n.Compare_Variants(), ui.medium);
   compareVariantsModal.add(new ui.Label(i18n.Loading()));
   compareVariantsModal.open();
 
@@ -226,6 +225,7 @@ data.onProjectSelect.subscribe(async (project) => {
 
       if (variant) {
         section.name = variant.name;
+        variantName = variant.name;
         showVolume(variant.totalVolume);
         showArea(variant.totalFloorArea);
         showFootprint(variant.footprintArea);
