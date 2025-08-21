@@ -24,8 +24,7 @@ let variantBuildings: data.Building[] = [];
 let variantName: string | undefined = undefined;
 
 const updateBuildings = (buildings: data.Building[]) => {
-  variantBuildings = buildings;
-
+  variantBuildings = buildings.filter((b) => b.floorArea.total > 0 || b.volume.total > 0 || b.footprint > 0);
 }
 
 const onShowViewDetails = () => {
