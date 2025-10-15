@@ -37,26 +37,28 @@ const onShowViewDetails = () => {
     return;
   }
 
-  const columns = variantBuildings.map(
+  const filteredBuildings = variantBuildings.filter((b) => b.volume.total > 0 || b.floorArea.total > 0 || b.footprint > 0);
+
+  const columns = filteredBuildings.map(
     (building, index) => new ui.Column<Record>(building.name, (item) => item.format(item.data[index]), { minWidth: "100px", width: 100 })
   );
 
   const metricsRecords: Record[] = [
-    { label: i18n.Volume(), data: variantBuildings.map((b) => b.volume.total), format: (value) => value.toMetricVolumeString() },
-    { label: i18n.Floor_Area(), data: variantBuildings.map((b) => b.floorArea.total), format: (value) => value.toMetricAreaString() },
-    { label: i18n.Area_above_ground(), data: variantBuildings.map((b) => b.floorArea.overground), format: (value) => value.toMetricAreaString() },
-    { label: i18n.Area_below_ground(), data: variantBuildings.map((b) => b.floorArea.underground), format: (value) => value.toMetricAreaString() },
-    { label: i18n.Footprint(), data: variantBuildings.map((b) => b.footprint), format: (value) => value.toMetricAreaString() },
+    { label: i18n.Volume(), data: filteredBuildings.map((b) => b.volume.total), format: (value) => value.toMetricVolumeString() },
+    { label: i18n.Floor_Area(), data: filteredBuildings.map((b) => b.floorArea.total), format: (value) => value.toMetricAreaString() },
+    { label: i18n.Area_above_ground(), data: filteredBuildings.map((b) => b.floorArea.overground), format: (value) => value.toMetricAreaString() },
+    { label: i18n.Area_below_ground(), data: filteredBuildings.map((b) => b.floorArea.underground), format: (value) => value.toMetricAreaString() },
+    { label: i18n.Footprint(), data: filteredBuildings.map((b) => b.footprint), format: (value) => value.toMetricAreaString() },
   ];
 
   // Prepare records for CSV export -> no m2/m3 units in formatting
   const metricsRecordsExport: Record[] = [
-    { label: i18n.Metrics(), data: variantBuildings.map((b) => b.name), format: (value) => value },
-    { label: i18n.Volume(), data: variantBuildings.map((b) => b.volume.total), format: (value) => value.toFixed(2) },
-    { label: i18n.Floor_Area(), data: variantBuildings.map((b) => b.floorArea.total), format: (value) => value.toFixed(2) },
-    { label: i18n.Area_above_ground(), data: variantBuildings.map((b) => b.floorArea.overground), format: (value) => value.toFixed(2) },
-    { label: i18n.Area_below_ground(), data: variantBuildings.map((b) => b.floorArea.underground), format: (value) => value.toFixed(2) },
-    { label: i18n.Footprint(), data: variantBuildings.map((b) => b.footprint), format: (value) => value },
+    { label: i18n.Metrics(), data: filteredBuildings.map((b) => b.name), format: (value) => value },
+    { label: i18n.Volume(), data: filteredBuildings.map((b) => b.volume.total), format: (value) => value.toFixed(2) },
+    { label: i18n.Floor_Area(), data: filteredBuildings.map((b) => b.floorArea.total), format: (value) => value.toFixed(2) },
+    { label: i18n.Area_above_ground(), data: filteredBuildings.map((b) => b.floorArea.overground), format: (value) => value.toFixed(2) },
+    { label: i18n.Area_below_ground(), data: filteredBuildings.map((b) => b.floorArea.underground), format: (value) => value.toFixed(2) },
+    { label: i18n.Footprint(), data: filteredBuildings.map((b) => b.footprint), format: (value) => value },
   ];
 
   const metricsLabelColumn = new ui.Column<Record>(i18n.Metrics(), (item) => item.label, { align: "left", sticky: true, minWidth: 100 });
@@ -214,6 +216,9 @@ data.onProjectSelect.subscribe(async (project) => {
     footprintLabel.value = footprintArea.toMetricAreaString();
   };
 
+      const viewDetailsButton = new ui.Button(i18n.View_Details(), onShowViewDetails);
+    viewDetailsButton.primary = true;
+
   variantSubscription?.unsubscribe();
   if (project) {
     // get information of active variant
@@ -233,6 +238,7 @@ data.onProjectSelect.subscribe(async (project) => {
         areaSubscription = variant.onTotalFloorAreaChange.subscribe(showArea);
         footPrintSubscription = variant.onFootprintAreaChange.subscribe(showFootprint);
         buildingsSubscription = variant.onBuildingsChange.subscribe(updateBuildings);
+        viewDetailsButton.disabled = false;
       } else {
         section.name = i18n.No_variant_selected();
         areaLabel.value = "- m²";
@@ -240,11 +246,11 @@ data.onProjectSelect.subscribe(async (project) => {
         overgroundAreaLabel.value = "- m²";
         undergroundAreaLabel.value = "- m²";
         footprintLabel.value = "- m²";
+        viewDetailsButton.disabled = true;
       }
     });
 
-    const viewDetailsButton = new ui.Button(i18n.View_Details(), onShowViewDetails);
-    viewDetailsButton.primary = true;
+
     app.add(viewDetailsButton);
 
     const compareVariantsButton = new ui.Button(i18n.Compare_Variants());
