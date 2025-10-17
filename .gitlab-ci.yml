@@ -1,5 +1,5 @@
 stages: [translation, translation-pull, version, build, deployment]
-
+# Bulding - metrics
 include:
   - component: gitlab.com/luucy/sdk/ci-components/crowdin_push@main
   - component: gitlab.com/luucy/sdk/ci-components/crowdin_pull@main
