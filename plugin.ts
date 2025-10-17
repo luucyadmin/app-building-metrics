@@ -10,7 +10,6 @@ type Record = {
   format: (value: any) => string;
 };
 
-const toPercentage = (value: number) => `${(100 * value).toFixed(1)} %`;
 const disabledRecords = (b: Record) => {
   for (var f in features) {
     if (features[f] === false && b.label === i18n[f]) {
