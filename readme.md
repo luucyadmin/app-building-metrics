@@ -12,3 +12,4 @@ App to compare and export area and volumetric building data of variants imported
 - install LUUCY CLI: `npm install -g luucy-cli`
 - install dependencies: `npm install`
 - run the plugin in debug mode: `luucy serve`
+
