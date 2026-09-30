@@ -8,7 +8,7 @@ export default {
   Metrics: "Métriques",
   Usages: "Utilisation",
   No_variant_selected: "Aucune variante sélectionnée",
-  No_building: 'Aucun bâtiment dans la variante sélectionnée',
+  No_building: 'No buildings in selected variant',
   Selected_Variant: "Variante sélectionnée",
   Export_to_Excel: "Exportation vers Excel (CSV)",
   Formatted: "Formaté",
@@ -16,5 +16,5 @@ export default {
   Download_CSV: "Télécharger le CSV",
   Footprint: "Empreinte",
   Loading: "Chargement",
-  Not_enough_variants: "Pas assez de variantes",
+  Not_enough_variants: "Pas assez de variantes"
 };
